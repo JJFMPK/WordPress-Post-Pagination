@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Custom Post Pagination
  * Description: Multi-page posts کے لیے condensed pagination (1 2 3 ... 50) Bootstrap-style pills اور "Go to Page" input کے ساتھ۔
- * Version: 1.4
+ * Version: 1.5
  * Author: آMansoor Mehdi
  */
 
@@ -12,8 +12,11 @@ function cpp_paginate_post_links() {
 
     if (!$multipage) return;
 
+    // صحیح base اور format سیٹ کریں
+    $base = add_query_arg('page','%#%');
+
     $args = array(
-        'base'      => add_query_arg('page','%#%'),
+        'base'      => $base,
         'format'    => '',
         'total'     => $numpages,
         'current'   => $page,
@@ -22,7 +25,9 @@ function cpp_paginate_post_links() {
         'prev_text' => __('« Prev'),
         'next_text' => __('Next »'),
         'type'      => 'array',
-        'show_all'  => false // ✅ condensed pagination only
+        'show_all'  => false,  // ✅ condensed pagination only
+        'before_page_number' => '',
+        'after_page_number'  => '',
     );
 
     $links = paginate_links($args);

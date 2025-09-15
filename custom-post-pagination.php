@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: Custom Post Pagination
- * Description: Multi-page posts کے لیے condensed pagination (1 2 3 ... 50) Bootstrap-style pills کے ساتھ۔
- * Version: 1.2
- * Author: Mansoor Mehdi
- * https://github.com/JJFMPK/WordPress-Post-Pagination
+ * Description: Multi-page posts کے لیے condensed pagination (1 2 3 ... 50) Bootstrap-style pills اور "Go to Page" input کے ساتھ۔
+ * Version: 1.4
+ * Author: آMansoor Mehdi
+ */
 
 // Pagination generate کرنے والا فنکشن
 function cpp_paginate_post_links() {
@@ -17,11 +17,12 @@ function cpp_paginate_post_links() {
         'format'    => '',
         'total'     => $numpages,
         'current'   => $page,
-        'mid_size'  => 2,   // درمیان میں کتنے pages دکھانے ہیں
-        'end_size'  => 1,   // شروع اور آخر کے کتنے pages دکھانے ہیں
+        'mid_size'  => 2,   // درمیان کے صفحات
+        'end_size'  => 1,   // شروع اور آخر کے صفحات
         'prev_text' => __('« Prev'),
         'next_text' => __('Next »'),
-        'type'      => 'array'
+        'type'      => 'array',
+        'show_all'  => false // ✅ condensed pagination only
     );
 
     $links = paginate_links($args);
@@ -39,6 +40,16 @@ function cpp_paginate_post_links() {
             }
         }
         echo '</ul>';
+
+        // Go to page form
+        echo '<div class="cpp-goto">';
+        echo '<form method="get" action="">';
+        echo '<label for="cpp-goto-input">Go to page:</label> ';
+        echo '<input type="number" min="1" max="' . $numpages . '" name="page" id="cpp-goto-input" value="' . $page . '">';
+        echo '<button type="submit">Go</button>';
+        echo '</form>';
+        echo '</div>';
+
         echo '</nav>';
     }
 }

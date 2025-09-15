@@ -3,8 +3,8 @@
  * Plugin Name: Custom Post Pagination
  * Description: Multi-page posts کے لیے condensed pagination (1 2 3 ... 50) Bootstrap-style pills کے ساتھ۔
  * Version: 1.2
- * Author: آپ کا نام
- */
+ * Author: Mansoor Mehdi
+ * https://github.com/JJFMPK/WordPress-Post-Pagination
 
 // Pagination generate کرنے والا فنکشن
 function cpp_paginate_post_links() {

@@ -1,85 +1,131 @@
 <?php
-/**
- * Plugin Name: Custom Post Pagination
- * Description: Multi-page posts کے لیے condensed pagination (1 2 3 ... 50) Bootstrap-style pills اور "Go to Page" input کے ساتھ۔
- * Version: 1.5
- * Author: آMansoor Mehdi
- */
+/*
+Plugin Name: Modern Page Navigation
+Plugin URI: https://example.com/modern-page-navigation
+Description: A smart pagination system for WordPress posts with multiple pages using <!--nextpage--> tag
+Version: 1.0.0
+Author: Mansoor Mehdi
+Text Domain: modern-page-navigation
+*/
 
-// Pagination generate کرنے والا فنکشن
-function cpp_paginate_post_links() {
-    global $page, $numpages, $multipage;
+// پلگ ان سیکیورٹی چیک
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-    if (!$multipage) return;
-
-    // صحیح base اور format سیٹ کریں
-    $base = add_query_arg('page','%#%');
-
-    $args = array(
-        'base'      => $base,
-        'format'    => '',
-        'total'     => $numpages,
-        'current'   => $page,
-        'mid_size'  => 2,   // درمیان کے صفحات
-        'end_size'  => 1,   // شروع اور آخر کے صفحات
-        'prev_text' => __('« Prev'),
-        'next_text' => __('Next »'),
-        'type'      => 'array',
-        'show_all'  => false,  // ✅ condensed pagination only
-        'before_page_number' => '',
-        'after_page_number'  => '',
-    );
-
-    $links = paginate_links($args);
-
-    if (is_array($links)) {
-        echo '<nav class="cpp-pagination-wrapper" aria-label="Page navigation">';
-        echo '<ul class="cpp-pagination">';
-        foreach ($links as $link) {
-            if (strpos($link, 'current') !== false) {
-                echo '<li class="active"><span class="page-link">' . strip_tags($link) . '</span></li>';
-            } elseif (strpos($link, 'dots') !== false) {
-                echo '<li class="disabled"><span class="page-link">…</span></li>';
+class ModernPageNavigation {
+    
+    public function __construct() {
+        add_filter('wp_link_pages', array($this, 'modern_pagination'), 10, 2);
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+    }
+    
+    // سٹائل شیٹ انکوئی
+    public function enqueue_styles() {
+        wp_enqueue_style('modern-page-nav', plugin_dir_url(__FILE__) . 'style.css', array(), '1.0.0');
+    }
+    
+    // جدید پیج نیویگیشن فنکشن
+    public function modern_pagination($output, $args) {
+        global $page, $numpages;
+        
+        if ($numpages <= 1) {
+            return $output;
+        }
+        
+        $defaults = array(
+            'before' => '<div class="page-links">',
+            'after' => '</div>',
+            'link_before' => '',
+            'link_after' => '',
+            'next_or_number' => 'number',
+            'separator' => ' ',
+            'nextpagelink' => __('Next Page'),
+            'previouspagelink' => __('Previous Page'),
+            'pagelink' => '%',
+            'echo' => 1
+        );
+        
+        $args = wp_parse_args($args, $defaults);
+        
+        // اگر صفحات 7 سے کم ہوں تو سادہ نیویگیشن
+        if ($numpages <= 7) {
+            return $this->simple_pagination($page, $numpages, $args);
+        }
+        
+        // اگر صفحات 7 سے زیادہ ہوں تو جدید نیویگیشن
+        return $this->advanced_pagination($page, $numpages, $args);
+    }
+    
+    // سادہ نیویگیشن (7 صفحات تک)
+    private function simple_pagination($current, $total, $args) {
+        $links = array();
+        
+        for ($i = 1; $i <= $total; $i++) {
+            if ($i == $current) {
+                $links[] = '<span class="page-numbers current">' . $i . '</span>';
             } else {
-                echo '<li>' . str_replace('page-numbers', 'page-link', $link) . '</li>';
+                $links[] = $this->get_page_link($i, $args['link_before'] . $i . $args['link_after'], $args);
             }
         }
-        echo '</ul>';
-
-        // Go to page form
-        echo '<div class="cpp-goto">';
-        echo '<form method="get" action="">';
-        echo '<label for="cpp-goto-input">Go to page:</label> ';
-        echo '<input type="number" min="1" max="' . $numpages . '" name="page" id="cpp-goto-input" value="' . $page . '">';
-        echo '<button type="submit">Go</button>';
-        echo '</form>';
-        echo '</div>';
-
-        echo '</nav>';
+        
+        return $args['before'] . implode($args['separator'], $links) . $args['after'];
+    }
+    
+    // جدید نیویگیشن (7 صفحات سے زیادہ)
+    private function advanced_pagination($current, $total, $args) {
+        $links = array();
+        
+        // پہلا صفحہ
+        if ($current > 1) {
+            $links[] = $this->get_page_link(1, $args['link_before'] . '1' . $args['link_after'], $args);
+        }
+        
+        // پچھلا صفحہ بٹن
+        if ($current > 1) {
+            $links[] = $this->get_page_link($current - 1, $args['link_before'] . '&laquo;' . $args['link_after'], $args);
+        }
+        
+        // درمیانی صفحات
+        if ($current > 3) {
+            $links[] = '<span class="page-numbers dots">...</span>';
+        }
+        
+        // موجودہ صفحہ اور اس کے اردگرد کے صفحات
+        $start = max(1, $current - 2);
+        $end = min($total, $current + 2);
+        
+        for ($i = $start; $i <= $end; $i++) {
+            if ($i == $current) {
+                $links[] = '<span class="page-numbers current">' . $i . '</span>';
+            } else {
+                $links[] = $this->get_page_link($i, $args['link_before'] . $i . $args['link_after'], $args);
+            }
+        }
+        
+        // آخری صفحات
+        if ($current < $total - 2) {
+            $links[] = '<span class="page-numbers dots">...</span>';
+        }
+        
+        // اگلا صفحہ بٹن
+        if ($current < $total) {
+            $links[] = $this->get_page_link($current + 1, $args['link_before'] . '&raquo;' . $args['link_after'], $args);
+        }
+        
+        // آخری صفحہ
+        if ($current < $total) {
+            $links[] = $this->get_page_link($total, $args['link_before'] . $total . $args['link_after'], $args);
+        }
+        
+        return $args['before'] . implode($args['separator'], $links) . $args['after'];
+    }
+    
+    // صفحہ لنک بنانے کا فنکشن
+    private function get_page_link($page_number, $text, $args) {
+        return '<a href="' . esc_url(get_pagenum_link($page_number)) . '" class="page-numbers">' . $text . '</a>';
     }
 }
 
-// Default pagination ہٹائیں اور نیا والا لگائیں
-function cpp_replace_post_pagination() {
-    if (is_single()) {
-        remove_filter('the_content','wp_link_pages');
-        add_filter('the_content','cpp_filter_content_with_pagination');
-    }
-}
-add_action('wp_footer','cpp_replace_post_pagination');
-
-function cpp_filter_content_with_pagination($content) {
-    if (is_singular() && in_the_loop() && is_main_query()) {
-        ob_start();
-        cpp_paginate_post_links();
-        $pagination = ob_get_clean();
-        return $content . $pagination;
-    }
-    return $content;
-}
-
-// CSS include کریں
-function cpp_enqueue_styles() {
-    wp_enqueue_style('cpp-styles', plugin_dir_url(__FILE__) . 'style.css');
-}
-add_action('wp_enqueue_scripts', 'cpp_enqueue_styles');
+// پلگ ان شروع کریں
+new ModernPageNavigation();

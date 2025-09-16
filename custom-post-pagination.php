@@ -123,8 +123,21 @@ class ModernPageNavigation {
     
     // صفحہ لنک بنانے کا فنکشن
     private function get_page_link($page_number, $text, $args) {
-        return '<a href="' . esc_url(get_pagenum_link($page_number)) . '" class="page-numbers">' . $text . '</a>';
+    global $post;
+
+    // پوسٹ کا پرمالنک حاصل کریں
+    $base_link = get_permalink($post->ID);
+
+    // اگر صفحہ نمبر 1 ہے تو صرف پرمالنک لوٹائیں
+    if ($page_number == 1) {
+        $link = $base_link;
+    } else {
+        // ورڈپریس پوسٹ کے اندر صفحات کے لیے /page/2/ یا ?page=2 کا استعمال ہوتا ہے
+        // عام طور پر pretty permalinks میں /page/2/ ہوتا ہے
+        $link = trailingslashit($base_link) . user_trailingslashit('page/' . $page_number, 'single_paged');
     }
+
+    return '<a href="' . esc_url($link) . '" class="page-numbers">' . $text . '</a>';
 }
 
 // پلگ ان شروع کریں

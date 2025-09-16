@@ -1,14 +1,10 @@
-.modern-page-navigation-container {
-    margin: 2rem 0;
-    text-align: center;
-}
-
 .page-links {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
+    margin: 1.5rem 0;
 }
 
 .page-numbers {
@@ -34,12 +30,14 @@
     background-color: #3b82f6;
     color: white;
     border-color: #3b82f6;
+    cursor: default;
 }
 
 .page-numbers.dots {
     border: none;
     padding: 0.5rem 0.25rem;
     min-width: auto;
+    cursor: default;
 }
 
 .page-numbers.dots:hover {
@@ -47,7 +45,7 @@
     transform: none;
 }
 
-/* موبائل ریسپانسیو ڈیزائن */
+/* موبائل ریسپانسیو */
 @media (max-width: 768px) {
     .page-links {
         gap: 0.25rem;

@@ -3,12 +3,12 @@
 Plugin Name: Modern Page Navigation
 Plugin URI: https://example.com/modern-page-navigation
 Description: A smart pagination system for WordPress posts with multiple pages using <!--nextpage--> tag
-Version: 1.0.0
+Version: 1.0.1
 Author: Mansoor Mehdi
 Text Domain: modern-page-navigation
 */
 
-// پلگ ان سیکیورٹی چیک
+// سیکیورٹی چیک
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -20,12 +20,12 @@ class ModernPageNavigation {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
     }
     
-    // سٹائل شیٹ انکوئی
+    // سٹائل شیٹ لوڈ کریں
     public function enqueue_styles() {
-        wp_enqueue_style('modern-page-nav', plugin_dir_url(__FILE__) . 'style.css', array(), '1.0.0');
+        wp_enqueue_style('modern-page-nav', plugin_dir_url(__FILE__) . 'style.css', array(), '1.0.1');
     }
     
-    // جدید پیج نیویگیشن فنکشن
+    // جدید پیج نیویگیشن
     public function modern_pagination($output, $args) {
         global $page, $numpages;
         
@@ -48,12 +48,10 @@ class ModernPageNavigation {
         
         $args = wp_parse_args($args, $defaults);
         
-        // اگر صفحات 7 سے کم ہوں تو سادہ نیویگیشن
         if ($numpages <= 7) {
             return $this->simple_pagination($page, $numpages, $args);
         }
         
-        // اگر صفحات 7 سے زیادہ ہوں تو جدید نیویگیشن
         return $this->advanced_pagination($page, $numpages, $args);
     }
     
@@ -86,7 +84,7 @@ class ModernPageNavigation {
             $links[] = $this->get_page_link($current - 1, $args['link_before'] . '&laquo;' . $args['link_after'], $args);
         }
         
-        // درمیانی صفحات
+        // درمیانی صفحات سے پہلے dots
         if ($current > 3) {
             $links[] = '<span class="page-numbers dots">...</span>';
         }
@@ -103,7 +101,7 @@ class ModernPageNavigation {
             }
         }
         
-        // آخری صفحات
+        // درمیانی صفحات کے بعد dots
         if ($current < $total - 2) {
             $links[] = '<span class="page-numbers dots">...</span>';
         }
@@ -121,24 +119,21 @@ class ModernPageNavigation {
         return $args['before'] . implode($args['separator'], $links) . $args['after'];
     }
     
-    // صفحہ لنک بنانے کا فنکشن
+    // پوسٹ کے اندر صفحات کے لیے صحیح لنک بنائیں
     private function get_page_link($page_number, $text, $args) {
-    global $post;
+        global $post;
 
-    // پوسٹ کا پرمالنک حاصل کریں
-    $base_link = get_permalink($post->ID);
+        $base_link = get_permalink($post->ID);
 
-    // اگر صفحہ نمبر 1 ہے تو صرف پرمالنک لوٹائیں
-    if ($page_number == 1) {
-        $link = $base_link;
-    } else {
-        // ورڈپریس پوسٹ کے اندر صفحات کے لیے /page/2/ یا ?page=2 کا استعمال ہوتا ہے
-        // عام طور پر pretty permalinks میں /page/2/ ہوتا ہے
-        $link = trailingslashit($base_link) . user_trailingslashit('page/' . $page_number, 'single_paged');
+        if ($page_number == 1) {
+            $link = $base_link;
+        } else {
+            $link = trailingslashit($base_link) . user_trailingslashit('page/' . $page_number, 'single_paged');
+        }
+
+        return '<a href="' . esc_url($link) . '" class="page-numbers">' . $text . '</a>';
     }
-
-    return '<a href="' . esc_url($link) . '" class="page-numbers">' . $text . '</a>';
 }
 
-// پلگ ان شروع کریں
+// پلگ ان کو شروع کریں
 new ModernPageNavigation();
